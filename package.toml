@@ -1,0 +1,7 @@
+[package]
+name = "fractex"
+version = "1.0"
+entrypoint = "src/fractex.sty"
+authors = ["Eito YONEYAMA"]
+license = "BSD 2-Clause"
+description = "A comprehensive 2D fractal visualization package for LaTeX."
