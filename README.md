@@ -31,7 +31,7 @@ This package requires `pgfplots`, `luacode` and `xkeyva`. Additionally, since Lu
 To install this package, you can clone the repository from GitHub:
 
 ```bash
-git clone https://github.com/rice8y/fractex
+git clone https://github.com/rice8y/FracTeX.git
 ```
 
 ### Windows
