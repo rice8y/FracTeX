@@ -1,0 +1,809 @@
+%%
+%% This is file `fractex.sty',
+%% a comprehensive 2D fractal generation package for LaTeX.
+%%
+%% This package provides commands to visualize various types of fractals
+%% using PGFPlots and LuaTeX. Implemented with Lua algorithms and
+%% optimized for mathematical visualization in LaTeX documents.
+%%
+%% Supported Fractals:
+%% - Mandelbrot Set
+%% - Julia Set
+%% - Barnsley Fern (IFS)
+%% - Burning Ship Fractal
+%% - Newton Fractal
+%% - Phoenix Fractal
+%% - Tricorn Fractal
+%% - Buffalo Fractal
+%% - Sierpiński Triangle
+%% - Lyapunov Fractal
+%% - Magnet Fractal
+%% - Multibrot Set
+%% - Gingerbreadman Map
+%%
+%% Basic Usage:
+%% \MandelbrotSet[options]
+%% \JuliaSet[options]
+%% \BarnsleyFern[options]
+%% \BurningShipFractal[options]
+%% \NewtonFractal[options]
+%% \PhoenixFractal[options]
+%% \TricornFractal[options]
+%% \BuffaloFractal[options]
+%% \SierpinskiTriangle[options]
+%% \LyapunovFractal[options]
+%% \MagnetFractal[options]
+%% \MultibrotSet[options]
+%% \GingerbreadmanMap[options]
+%%
+%% Common Options (varies by fractal):
+%% - colormap: Color scheme (default: jet)
+%% - xmin/xmax: X-axis range
+%% - ymin/ymax: Y-axis range
+%% - dx/dy: Resolution parameters
+%% - max_iter: Iteration limit
+%% - num_points: Point count for IFS fractals
+%% - color: Base color for monochromatic fractals
+%%
+%% Example Usage:
+%% \MandelbrotSet[colormap=hot, max_iter=200]
+%% \JuliaSet[c_re=-0.4, c_im=0.6, cmap=viridis]
+%% \BarnsleyFern[num_points=30000, color=ferngreen]
+%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{fractex}[2025/02/26 v1.0 Fractal Visualizations (2D) using PGFplots and LuaTeX]
+
+\RequirePackage{pgfplots}
+\RequirePackage{luacode}
+\RequirePackage{xkeyval}
+\pgfplotsset{compat=newest}
+
+\begin{luacode*}
+---------------------------
+-- Mandelbrot Set
+---------------------------
+function mandelbrot(x, y, max_iter)
+  local zx, zy = 0, 0
+  local iter = 0
+  while (zx*zx + zy*zy <= 4) and (iter < max_iter) do
+    local xtemp = zx*zx - zy*zy + x
+    zy = 2*zx*zy + y
+    zx = xtemp
+    iter = iter + 1
+  end
+  return iter
+end
+
+function generate_mandelbrot(xmin, xmax, ymin, ymax, dx, dy, max_iter)
+  tex.sprint("\\addplot[scatter,only marks,mark size=0.5pt,scatter src=explicit] coordinates {")
+  for x = xmin, xmax, dx do
+    for y = ymin, ymax, dy do
+      local iter = mandelbrot(x, y, max_iter)
+      local meta = iter / max_iter
+      tex.sprint(string.format("(%f,%f)[%f] ", x, y, meta))
+    end
+  end
+  tex.sprint("};")
+end
+
+---------------------------
+-- Julia Set
+---------------------------
+function julia(x, y, c_re, c_im, max_iter)
+  local zx, zy = x, y
+  local iter = 0
+  while (zx*zx + zy*zy <= 4) and (iter < max_iter) do
+    local xtemp = zx*zx - zy*zy + c_re
+    zy = 2*zx*zy + c_im
+    zx = xtemp
+    iter = iter + 1
+  end
+  return iter
+end
+
+function generate_julia(xmin, xmax, ymin, ymax, dx, dy, c_re, c_im, max_iter)
+  tex.sprint("\\addplot[scatter,only marks,mark size=0.5pt,scatter src=explicit] coordinates {")
+  for x = xmin, xmax, dx do
+    for y = ymin, ymax, dy do
+      local iter = julia(x, y, c_re, c_im, max_iter)
+      local meta = iter / max_iter
+      tex.sprint(string.format("(%f,%f)[%f] ", x, y, meta))
+    end
+  end
+  tex.sprint("};")
+end
+
+---------------------------
+-- Barnsley Fern (IFS)
+---------------------------
+function generate_barnsley(num_points, color)
+  local x, y = 0, 0
+  tex.sprint(string.format("\\addplot+[only marks, mark size=0.5pt, mark options={fill=%s, draw=%s}] coordinates {", color, color))
+  for i = 1, num_points do
+    local r = math.random()
+    local x_new, y_new
+    if r < 0.01 then
+      x_new = 0
+      y_new = 0.16*y
+    elseif r < 0.86 then
+      x_new = 0.85*x + 0.04*y
+      y_new = -0.04*x + 0.85*y + 1.6
+    elseif r < 0.93 then
+      x_new = 0.2*x - 0.26*y
+      y_new = 0.23*x + 0.22*y + 1.6
+    else
+      x_new = -0.15*x + 0.28*y
+      y_new = 0.26*x + 0.24*y + 0.44
+    end
+    x, y = x_new, y_new
+    tex.sprint(string.format("(%f,%f) ", x, y))
+  end
+  tex.sprint("};")
+end
+
+---------------------------
+-- Burning Ship Fractal
+---------------------------
+function burning_ship(x, y, max_iter)
+  local zx, zy = 0, 0
+  local iter = 0
+  while (zx*zx + zy*zy <= 4) and (iter < max_iter) do
+    local xtemp = zx*zx - zy*zy + x
+    zy = 2 * math.abs(zx*zy) + y
+    zx = math.abs(xtemp)
+    iter = iter + 1
+  end
+  return iter
+end
+
+function generate_burning_ship(xmin, xmax, ymin, ymax, dx, dy, max_iter)
+  tex.sprint("\\addplot[scatter,only marks,mark size=0.5pt,scatter src=explicit] coordinates {")
+  for x = xmin, xmax, dx do
+    for y = ymin, ymax, dy do
+      local iter = burning_ship(x, y, max_iter)
+      local meta = iter / max_iter
+      tex.sprint(string.format("(%f,%f)[%f] ", x, y, meta))
+    end
+  end
+  tex.sprint("};")
+end
+
+---------------------------
+-- Newton Fractal
+---------------------------
+function newton_fractal(x, y, max_iter)
+  local z_re, z_im = x, y
+  local tol = 1e-6
+  local iter = 0
+  while iter < max_iter do
+    local r2 = z_re*z_re - z_im*z_im
+    local im2 = 2*z_re*z_im
+    local f_re = r2*z_re - im2*z_im - 1
+    local f_im = r2*z_im + im2*z_re
+    local der_re = 3*(z_re*z_re - z_im*z_im)
+    local der_im = 6*z_re*z_im
+    local denom = der_re*der_re + der_im*der_im
+    if denom == 0 then break end
+    local z_re_new = z_re - (f_re*der_re + f_im*der_im)/denom
+    local z_im_new = z_im - (f_im*der_re - f_re*der_im)/denom
+    if math.abs(z_re_new - z_re) < tol and math.abs(z_im_new - z_im) < tol then break end
+    z_re, z_im = z_re_new, z_im_new
+    iter = iter + 1
+  end
+  return iter
+end
+
+function generate_newton(xmin, xmax, ymin, ymax, dx, dy, max_iter)
+  tex.sprint("\\addplot[scatter,only marks,mark size=0.5pt,scatter src=explicit] coordinates {")
+  for x = xmin, xmax, dx do
+    for y = ymin, ymax, dy do
+      local iter = newton_fractal(x, y, max_iter)
+      local meta = iter / max_iter
+      tex.sprint(string.format("(%f,%f)[%f] ", x, y, meta))
+    end
+  end
+  tex.sprint("};")
+end
+
+---------------------------
+-- Phoenix Fractal
+---------------------------
+Complex = {}
+function Complex.new(re, im) return {re = re, im = im} end
+function Complex.mul(a, b)
+  return Complex.new(a.re*b.re - a.im*b.im, a.re*b.im + a.im*b.re)
+end
+function Complex.add(a, b)
+  return Complex.new(a.re + b.re, a.im + b.im)
+end
+
+function phoenix_fractal(x, y, P, max_iter)
+  local c = Complex.new(x, y)
+  local z = Complex.new(x, y)
+  local z_prev = Complex.new(0, 0)
+  local iter = 0
+  while (z.re*z.re + z.im*z.im <= 4) and (iter < max_iter) do
+    local z_sq = Complex.mul(z, z)
+    local term = Complex.new(P * z_prev.re, P * z_prev.im)
+    local z_new = Complex.add(z_sq, term)
+    z_new = Complex.add(z_new, c)
+    z_prev = z
+    z = z_new
+    iter = iter + 1
+  end
+  return iter
+end
+
+function generate_phoenix(xmin, xmax, ymin, ymax, dx, dy, P, max_iter)
+  tex.sprint("\\addplot[scatter,only marks,mark size=0.5pt,scatter src=explicit] coordinates {")
+  for x = xmin, xmax, dx do
+    for y = ymin, ymax, dy do
+      local iter = phoenix_fractal(x, y, P, max_iter)
+      local meta = iter / max_iter
+      tex.sprint(string.format("(%f,%f)[%f] ", x, y, meta))
+    end
+  end
+  tex.sprint("};")
+end
+
+function tricorn(x, y, max_iter)
+  local zx, zy = 0, 0
+  local iter = 0
+  while (zx*zx + zy*zy <= 4) and (iter < max_iter) do
+    local xtemp = zx*zx - zy*zy + x
+    zy = -2*zx*zy + y
+    zx = xtemp
+    iter = iter + 1
+  end
+  return iter
+end
+
+function generate_tricorn(xmin, xmax, ymin, ymax, dx, dy, max_iter)
+  tex.sprint("\\addplot[scatter,only marks,mark size=0.5pt,scatter src=explicit] coordinates {")
+  for x = xmin, xmax, dx do
+    for y = ymin, ymax, dy do
+      local iter = tricorn(x, y, max_iter)
+      local meta = iter / max_iter
+      tex.sprint(string.format("(%f,%f)[%f] ", x, y, meta))
+    end
+  end
+  tex.sprint("};")
+end
+
+function buffalo(x, y, max_iter)
+  local zx, zy = 0, 0
+  local iter = 0
+  while (zx*zx + zy*zy <= 4) and (iter < max_iter) do
+    local zx_abs = math.abs(zx)
+    local zy_abs = math.abs(zy)
+    local xtemp = zx_abs*zx_abs - zy_abs*zy_abs + x
+    zy = 2*zx_abs*zy_abs + y
+    zx = xtemp
+    iter = iter + 1
+  end
+  return iter
+end
+
+function generate_buffalo(xmin, xmax, ymin, ymax, dx, dy, max_iter)
+  tex.sprint("\\addplot[scatter,only marks,mark size=0.5pt,scatter src=explicit] coordinates {")
+  for x = xmin, xmax, dx do
+    for y = ymin, ymax, dy do
+      local iter = buffalo(x, y, max_iter)
+      local meta = iter / max_iter
+      tex.sprint(string.format("(%f,%f)[%f] ", x, y, meta))
+    end
+  end
+  tex.sprint("};")
+end
+
+---------------------------
+-- Sierpiński Triangle (Chaos Game)
+---------------------------
+function generate_sierpinski(num_points, color)
+  local x, y = 0.5, 0.5
+  local vertices = {{0,0}, {1,0}, {0.5, 0.8660254}}  -- Equilateral triangle vertices
+  tex.sprint(string.format("\\addplot+[only marks, mark size=0.5pt, mark options={fill=%s, draw=%s}] coordinates {", color, color))
+  for i = 1, num_points do
+    local idx = math.random(1,3)
+    local v = vertices[idx]
+    x = (x + v[1]) / 2
+    y = (y + v[2]) / 2
+    tex.sprint(string.format("(%f,%f) ", x, y))
+  end
+  tex.sprint("};")
+end
+
+---------------------------
+-- Lyapunov Fractal
+---------------------------
+function lyapunov(a, b, max_iter)
+  local x = 0.5
+  local sum = 0
+  for n = 1, max_iter do
+    local r = (n % 2 == 1) and a or b
+    x = r * x * (1 - x)
+    local derivative = math.abs(r * (1 - 2*x))
+    if derivative == 0 then
+      sum = sum - 10  -- Penalize invalid values
+    else
+      sum = sum + math.log(derivative)
+    end
+  end
+  return sum / max_iter
+end
+
+function generate_lyapunov(amin, amax, bmin, bmax, da, db, max_iter)
+  tex.sprint("\\addplot[scatter,only marks,mark size=0.65pt,scatter src=explicit] coordinates {")
+  for a = amin, amax, da do
+    for b = bmin, bmax, db do
+      local lambda = lyapunov(a, b, max_iter)
+      local meta = lambda
+      tex.sprint(string.format("(%f,%f)[%f] ", a, b, meta))
+    end
+  end
+  tex.sprint("};")
+end
+
+---------------------------
+-- Magnet Fractal (Type I)
+---------------------------
+function magnet_fractal(c_re, c_im, max_iter)
+  local zr, zi = 0, 0
+  local iter = 0
+  while (zr*zr + zi*zi <= 4) and (iter < max_iter) do
+    local num_re = zr*zr - zi*zi + c_re - 1
+    local num_im = 2*zr*zi + c_im
+    local den_re = 2*zr + c_re - 2
+    local den_im = 2*zi + c_im
+    local denom = den_re*den_re + den_im*den_im
+    if denom == 0 then break end
+    local real_part = (num_re*den_re + num_im*den_im)/denom
+    local imag_part = (num_im*den_re - num_re*den_im)/denom
+    zr = real_part*real_part - imag_part*imag_part
+    zi = 2*real_part*imag_part
+    iter = iter + 1
+  end
+  return iter
+end
+
+function generate_magnet(xmin, xmax, ymin, ymax, dx, dy, max_iter)
+  tex.sprint("\\addplot[scatter,only marks,mark size=0.5pt,scatter src=explicit] coordinates {")
+  for x = xmin, xmax, dx do
+    for y = ymin, ymax, dy do
+      local iter = magnet_fractal(x, y, max_iter)
+      local meta = iter / max_iter
+      tex.sprint(string.format("(%f,%f)[%f] ", x, y, meta))
+    end
+  end
+  tex.sprint("};")
+end
+
+---------------------------
+-- Multibrot Set (z^d + c)
+---------------------------
+function complex_pow(r, i, d)
+  local pow_r, pow_i = r, i
+  for k = 2, d do
+    local tmp_r = pow_r * r - pow_i * i
+    local tmp_i = pow_r * i + pow_i * r
+    pow_r, pow_i = tmp_r, tmp_i
+  end
+  return pow_r, pow_i
+end
+
+function multibrot(c_re, c_im, d, max_iter)
+  local zr, zi = 0, 0
+  local iter = 0
+  while (zr*zr + zi*zi <= 4) and (iter < max_iter) do
+    local pow_r, pow_i = complex_pow(zr, zi, d)
+    zr = pow_r + c_re
+    zi = pow_i + c_im
+    iter = iter + 1
+  end
+  return iter
+end
+
+function generate_multibrot(xmin, xmax, ymin, ymax, dx, dy, d, max_iter)
+  tex.sprint("\\addplot[scatter,only marks,mark size=0.5pt,scatter src=explicit] coordinates {")
+  for x = xmin, xmax, dx do
+    for y = ymin, ymax, dy do
+      local iter = multibrot(x, y, d, max_iter)
+      local meta = iter / max_iter
+      tex.sprint(string.format("(%f,%f)[%f] ", x, y, meta))
+    end
+  end
+  tex.sprint("};")
+end
+
+---------------------------
+-- Gingerbreadman Fractal
+---------------------------
+function generate_gingerbread(num_points, color)
+  local x, y = -0.1, 0.1
+  tex.sprint(string.format("\\addplot+[only marks, mark size=0.5pt, mark options={fill=%s, draw=%s}] coordinates {", color, color))
+  for i = 1, num_points do
+    local x_new = 1 - y + math.abs(x)
+    y = x
+    x = x_new
+    tex.sprint(string.format("(%f,%f) ", x, y))
+  end
+  tex.sprint("};")
+end
+\end{luacode*}
+
+%==============================
+% Definition of Key Family
+%==============================
+%% Mandelbrot: xmin,xmax,ymin,ymax,dx,dy,max_iter
+\define@key{fractex/mandelbrot}{xmin}{\def\fractal@mandelbrot@xmin{#1}}
+\define@key{fractex/mandelbrot}{xmax}{\def\fractal@mandelbrot@xmax{#1}}
+\define@key{fractex/mandelbrot}{ymin}{\def\fractal@mandelbrot@ymin{#1}}
+\define@key{fractex/mandelbrot}{ymax}{\def\fractal@mandelbrot@ymax{#1}}
+\define@key{fractex/mandelbrot}{dx}{\def\fractal@mandelbrot@dx{#1}}
+\define@key{fractex/mandelbrot}{dy}{\def\fractal@mandelbrot@dy{#1}}
+\define@key{fractex/mandelbrot}{max_iter}{\def\fractal@mandelbrot@maxiter{#1}}
+\define@key{fractex/mandelbrot}{cmap}{\def\fractal@mandelbrot@cmap{#1}}
+\setkeys{fractex/mandelbrot}{xmin=-2, xmax=1, ymin=-1.5, ymax=1.5, dx=0.02, dy=0.02, max_iter=100, cmap=jet}
+
+%% Julia: xmin,xmax,ymin,ymax,dx,dy,c_re,c_im,max_iter
+\define@key{fractex/julia}{xmin}{\def\fractal@julia@xmin{#1}}
+\define@key{fractex/julia}{xmax}{\def\fractal@julia@xmax{#1}}
+\define@key{fractex/julia}{ymin}{\def\fractal@julia@ymin{#1}}
+\define@key{fractex/julia}{ymax}{\def\fractal@julia@ymax{#1}}
+\define@key{fractex/julia}{dx}{\def\fractal@julia@dx{#1}}
+\define@key{fractex/julia}{dy}{\def\fractal@julia@dy{#1}}
+\define@key{fractex/julia}{c_re}{\def\fractal@julia@cre{#1}}
+\define@key{fractex/julia}{c_im}{\def\fractal@julia@cim{#1}}
+\define@key{fractex/julia}{max_iter}{\def\fractal@julia@maxiter{#1}}
+\define@key{fractex/julia}{cmap}{\def\fractal@julia@cmap{#1}}
+\setkeys{fractex/julia}{xmin=-1.5, xmax=1.5, ymin=-1.5, ymax=1.5, dx=0.02, dy=0.02, c_re=-0.8, c_im=0.156, max_iter=100, cmap=jet}
+
+%% Barnsley Fern: num_points
+\define@key{fractex/barnsley}{num_points}{\def\fractal@barnsley@num{#1}}
+\define@key{fractex/barnsley}{color}{\def\fractal@barnsley@color{#1}}
+\setkeys{fractex/barnsley}{num_points=50000, color=green}
+
+%% Burning Ship: xmin,xmax,ymin,ymax,dx,dy,max_iter
+\define@key{fractex/burning}{xmin}{\def\fractal@burning@xmin{#1}}
+\define@key{fractex/burning}{xmax}{\def\fractal@burning@xmax{#1}}
+\define@key{fractex/burning}{ymin}{\def\fractal@burning@ymin{#1}}
+\define@key{fractex/burning}{ymax}{\def\fractal@burning@ymax{#1}}
+\define@key{fractex/burning}{dx}{\def\fractal@burning@dx{#1}}
+\define@key{fractex/burning}{dy}{\def\fractal@burning@dy{#1}}
+\define@key{fractex/burning}{max_iter}{\def\fractal@burning@maxiter{#1}}
+\define@key{fractex/burning}{cmap}{\def\fractal@burning@cmap{#1}}
+\setkeys{fractex/burning}{xmin=-2, xmax=1.5, ymin=-2, ymax=1, dx=0.02, dy=0.02, max_iter=100, cmap=jet}
+
+%% Newton Fractal: xmin,xmax,ymin,ymax,dx,dy,max_iter
+\define@key{fractex/newton}{xmin}{\def\fractal@newton@xmin{#1}}
+\define@key{fractex/newton}{xmax}{\def\fractal@newton@xmax{#1}}
+\define@key{fractex/newton}{ymin}{\def\fractal@newton@ymin{#1}}
+\define@key{fractex/newton}{ymax}{\def\fractal@newton@ymax{#1}}
+\define@key{fractex/newton}{dx}{\def\fractal@newton@dx{#1}}
+\define@key{fractex/newton}{dy}{\def\fractal@newton@dy{#1}}
+\define@key{fractex/newton}{max_iter}{\def\fractal@newton@maxiter{#1}}
+\define@key{fractex/newton}{cmap}{\def\fractal@newton@cmap{#1}}
+\setkeys{fractex/newton}{xmin=-1.5, xmax=1.5, ymin=-1.5, ymax=1.5, dx=0.02, dy=0.02, max_iter=20, cmap=jet}
+
+%% Phoenix Fractal: xmin,xmax,ymin,ymax,dx,dy,P,max_iter
+\define@key{fractex/phoenix}{xmin}{\def\fractal@phoenix@xmin{#1}}
+\define@key{fractex/phoenix}{xmax}{\def\fractal@phoenix@xmax{#1}}
+\define@key{fractex/phoenix}{ymin}{\def\fractal@phoenix@ymin{#1}}
+\define@key{fractex/phoenix}{ymax}{\def\fractal@phoenix@ymax{#1}}
+\define@key{fractex/phoenix}{dx}{\def\fractal@phoenix@dx{#1}}
+\define@key{fractex/phoenix}{dy}{\def\fractal@phoenix@dy{#1}}
+\define@key{fractex/phoenix}{P}{\def\fractal@phoenix@P{#1}}
+\define@key{fractex/phoenix}{max_iter}{\def\fractal@phoenix@maxiter{#1}}
+\define@key{fractex/phoenix}{cmap}{\def\fractal@phoenix@cmap{#1}}
+\setkeys{fractex/phoenix}{xmin=-1.5, xmax=1.5, ymin=-1.5, ymax=1.5, dx=0.02, dy=0.02, P=0.3, max_iter=50, cmap=jet}
+
+%% Tricorn Fractal: xmin,xmax,ymin,ymax,dx,dy,max_iter
+\define@key{fractex/tricorn}{xmin}{\def\fractal@tricorn@xmin{#1}}
+\define@key{fractex/tricorn}{xmax}{\def\fractal@tricorn@xmax{#1}}
+\define@key{fractex/tricorn}{ymin}{\def\fractal@tricorn@ymin{#1}}
+\define@key{fractex/tricorn}{ymax}{\def\fractal@tricorn@ymax{#1}}
+\define@key{fractex/tricorn}{dx}{\def\fractal@tricorn@dx{#1}}
+\define@key{fractex/tricorn}{dy}{\def\fractal@tricorn@dy{#1}}
+\define@key{fractex/tricorn}{max_iter}{\def\fractal@tricorn@maxiter{#1}}
+\define@key{fractex/tricorn}{cmap}{\def\fractal@tricorn@cmap{#1}}
+\setkeys{fractex/tricorn}{xmin=-2, xmax=1, ymin=-1.5, ymax=1.5, dx=0.02, dy=0.02, max_iter=100, cmap=jet}
+
+%% Buffalo Fractal: xmin,xmax,ymin,ymax,dx,dy,max_iter
+\define@key{fractex/buffalo}{xmin}{\def\fractal@buffalo@xmin{#1}}
+\define@key{fractex/buffalo}{xmax}{\def\fractal@buffalo@xmax{#1}}
+\define@key{fractex/buffalo}{ymin}{\def\fractal@buffalo@ymin{#1}}
+\define@key{fractex/buffalo}{ymax}{\def\fractal@buffalo@ymax{#1}}
+\define@key{fractex/buffalo}{dx}{\def\fractal@buffalo@dx{#1}}
+\define@key{fractex/buffalo}{dy}{\def\fractal@buffalo@dy{#1}}
+\define@key{fractex/buffalo}{max_iter}{\def\fractal@buffalo@maxiter{#1}}
+\define@key{fractex/buffalo}{cmap}{\def\fractal@buffalo@cmap{#1}}
+\setkeys{fractex/buffalo}{xmin=-2, xmax=1, ymin=-1.5, ymax=1.5, dx=0.02, dy=0.02, max_iter=100, cmap=jet}
+
+% Sierpiński Triangle
+\define@key{fractex/sierpinski}{num_points}{\def\fractal@sierpinski@num{#1}}
+\define@key{fractex/sierpinski}{color}{\def\fractal@sierpinski@color{#1}}
+\setkeys{fractex/sierpinski}{num_points=50000, color=blue}
+
+% Lyapunov Fractal
+\define@key{fractex/lyapunov}{amin}{\def\fractal@lyapunov@amin{#1}}
+\define@key{fractex/lyapunov}{amax}{\def\fractal@lyapunov@amax{#1}}
+\define@key{fractex/lyapunov}{bmin}{\def\fractal@lyapunov@bmin{#1}}
+\define@key{fractex/lyapunov}{bmax}{\def\fractal@lyapunov@bmax{#1}}
+\define@key{fractex/lyapunov}{da}{\def\fractal@lyapunov@da{#1}}
+\define@key{fractex/lyapunov}{db}{\def\fractal@lyapunov@db{#1}}
+\define@key{fractex/lyapunov}{max_iter}{\def\fractal@lyapunov@maxiter{#1}}
+\define@key{fractex/lyapunov}{cmap}{\def\fractal@lyapunov@cmap{#1}}
+\setkeys{fractex/lyapunov}{amin=2.4, amax=3.6, bmin=2.4, bmax=3.6, da=0.01, db=0.01, max_iter=100, cmap=hot}
+
+% Magnet Fractal
+\define@key{fractex/magnet}{xmin}{\def\fractal@magnet@xmin{#1}}
+\define@key{fractex/magnet}{xmax}{\def\fractal@magnet@xmax{#1}}
+\define@key{fractex/magnet}{ymin}{\def\fractal@magnet@ymin{#1}}
+\define@key{fractex/magnet}{ymax}{\def\fractal@magnet@ymax{#1}}
+\define@key{fractex/magnet}{dx}{\def\fractal@magnet@dx{#1}}
+\define@key{fractex/magnet}{dy}{\def\fractal@magnet@dy{#1}}
+\define@key{fractex/magnet}{max_iter}{\def\fractal@magnet@maxiter{#1}}
+\define@key{fractex/magnet}{cmap}{\def\fractal@magnet@cmap{#1}}
+\setkeys{fractex/magnet}{xmin=-2, xmax=2, ymin=-2, ymax=2, dx=0.02, dy=0.02, max_iter=100, cmap=jet}
+
+% Multibrot Set
+\define@key{fractex/multibrot}{xmin}{\def\fractal@multibrot@xmin{#1}}
+\define@key{fractex/multibrot}{xmax}{\def\fractal@multibrot@xmax{#1}}
+\define@key{fractex/multibrot}{ymin}{\def\fractal@multibrot@ymin{#1}}
+\define@key{fractex/multibrot}{ymax}{\def\fractal@multibrot@ymax{#1}}
+\define@key{fractex/multibrot}{dx}{\def\fractal@multibrot@dx{#1}}
+\define@key{fractex/multibrot}{dy}{\def\fractal@multibrot@dy{#1}}
+\define@key{fractex/multibrot}{d}{\def\fractal@multibrot@d{#1}}
+\define@key{fractex/multibrot}{max_iter}{\def\fractal@multibrot@maxiter{#1}}
+\define@key{fractex/multibrot}{cmap}{\def\fractal@multibrot@cmap{#1}}
+\setkeys{fractex/multibrot}{xmin=-2, xmax=2, ymin=-2, ymax=2, dx=0.02, dy=0.02, d=3, max_iter=100, cmap=jet}
+
+% Gingerbreadman
+\define@key{fractex/gingerbread}{num_points}{\def\fractal@gingerbread@num{#1}}
+\define@key{fractex/gingerbread}{color}{\def\fractal@gingerbread@color{#1}}
+\setkeys{fractex/gingerbread}{num_points=50000, color=red}
+
+%==============================
+% Definition of Each Fractal Drawing Command
+%==============================
+
+% Mandelbrot
+\NewDocumentCommand{\MandelbrotSet}{O{}}{%
+  \setkeys{fractex/mandelbrot}{#1}%
+  \begin{tikzpicture}
+    \begin{axis}[hide axis, axis equal, colormap/\fractal@mandelbrot@cmap]
+      \directlua{%
+        generate_mandelbrot(
+          \fractal@mandelbrot@xmin,
+          \fractal@mandelbrot@xmax,
+          \fractal@mandelbrot@ymin,
+          \fractal@mandelbrot@ymax,
+          \fractal@mandelbrot@dx,
+          \fractal@mandelbrot@dy,
+          \fractal@mandelbrot@maxiter
+        )
+      }
+    \end{axis}
+  \end{tikzpicture}%
+}
+
+% Julia Set
+\NewDocumentCommand{\JuliaSet}{O{}}{%
+  \setkeys{fractex/julia}{#1}%
+  \begin{tikzpicture}
+    \begin{axis}[hide axis, axis equal, colormap/\fractal@julia@cmap]
+      \directlua{%
+        generate_julia(
+          \fractal@julia@xmin,
+          \fractal@julia@xmax,
+          \fractal@julia@ymin,
+          \fractal@julia@ymax,
+          \fractal@julia@dx,
+          \fractal@julia@dy,
+          \fractal@julia@cre,
+          \fractal@julia@cim,
+          \fractal@julia@maxiter
+        )
+      }
+    \end{axis}
+  \end{tikzpicture}%
+}
+
+% Barnsley Fern
+\NewDocumentCommand{\BarnsleyFern}{O{}}{%
+  \setkeys{fractex/barnsley}{#1}%
+  \begin{tikzpicture}
+    \begin{axis}[hide axis]
+    % \begin{axis}[hide axis, every mark/.append style={color=\fractal@barnsley@color}]
+      \directlua{%
+        generate_barnsley(\fractal@barnsley@num, "\fractal@barnsley@color")
+      }
+    \end{axis}
+  \end{tikzpicture}%
+}
+
+% Burning Ship
+\NewDocumentCommand{\BurningShipFractal}{O{}}{%
+  \setkeys{fractex/burning}{#1}%
+  \begin{tikzpicture}
+    \begin{axis}[hide axis, axis equal, colormap/\fractal@burning@cmap]
+      \directlua{%
+        generate_burning_ship(
+          \fractal@burning@xmin,
+          \fractal@burning@xmax,
+          \fractal@burning@ymin,
+          \fractal@burning@ymax,
+          \fractal@burning@dx,
+          \fractal@burning@dy,
+          \fractal@burning@maxiter
+        )
+      }
+    \end{axis}
+  \end{tikzpicture}%
+}
+
+% Newton Fractal
+\NewDocumentCommand{\NewtonFractal}{O{}}{%
+  \setkeys{fractex/newton}{#1}%
+  \begin{tikzpicture}
+    \begin{axis}[hide axis, axis equal, colormap/\fractal@newton@cmap]
+      \directlua{%
+        generate_newton(
+          \fractal@newton@xmin,
+          \fractal@newton@xmax,
+          \fractal@newton@ymin,
+          \fractal@newton@ymax,
+          \fractal@newton@dx,
+          \fractal@newton@dy,
+          \fractal@newton@maxiter
+        )
+      }
+    \end{axis}
+  \end{tikzpicture}%
+}
+
+% Phoenix Fractal
+\NewDocumentCommand{\PhoenixFractal}{O{}}{%
+  \setkeys{fractex/phoenix}{#1}%
+  \begin{tikzpicture}
+    \begin{axis}[hide axis, axis equal, colormap/\fractal@phoenix@cmap]
+      \directlua{%
+        generate_phoenix(
+          \fractal@phoenix@xmin,
+          \fractal@phoenix@xmax,
+          \fractal@phoenix@ymin,
+          \fractal@phoenix@ymax,
+          \fractal@phoenix@dx,
+          \fractal@phoenix@dy,
+          \fractal@phoenix@P,
+          \fractal@phoenix@maxiter
+        )
+      }
+    \end{axis}
+  \end{tikzpicture}%
+}
+
+% Tricorn Fractal
+\NewDocumentCommand{\TricornFractal}{O{}}{%
+  \setkeys{fractex/tricorn}{#1}%
+  \begin{tikzpicture}
+    \begin{axis}[hide axis, axis equal, colormap/\fractal@tricorn@cmap]
+      \directlua{%
+        generate_tricorn(
+          \fractal@tricorn@xmin,
+          \fractal@tricorn@xmax,
+          \fractal@tricorn@ymin,
+          \fractal@tricorn@ymax,
+          \fractal@tricorn@dx,
+          \fractal@tricorn@dy,
+          \fractal@tricorn@maxiter
+        )
+      }
+    \end{axis}
+  \end{tikzpicture}%
+}
+
+% Buffalo Fractal
+\NewDocumentCommand{\BuffaloFractal}{O{}}{%
+  \setkeys{fractex/buffalo}{#1}%
+  \begin{tikzpicture}
+    \begin{axis}[hide axis, axis equal, colormap/\fractal@buffalo@cmap]
+      \directlua{%
+        generate_buffalo(
+          \fractal@buffalo@xmin,
+          \fractal@buffalo@xmax,
+          \fractal@buffalo@ymin,
+          \fractal@buffalo@ymax,
+          \fractal@buffalo@dx,
+          \fractal@buffalo@dy,
+          \fractal@buffalo@maxiter
+        )
+      }
+    \end{axis}
+  \end{tikzpicture}%
+}
+
+% Sierpiński Triangle
+\NewDocumentCommand{\SierpinskiTriangle}{O{}}{%
+  \setkeys{fractex/sierpinski}{#1}%
+  \begin{tikzpicture}
+    \begin{axis}[hide axis]
+      \directlua{%
+        generate_sierpinski(\fractal@sierpinski@num, "\fractal@sierpinski@color")
+      }
+    \end{axis}
+  \end{tikzpicture}%
+}
+
+% Lyapunov Fractal
+\NewDocumentCommand{\LyapunovFractal}{O{}}{%
+  \setkeys{fractex/lyapunov}{#1}%
+  \begin{tikzpicture}
+    \begin{axis}[hide axis, colormap/\fractal@lyapunov@cmap]
+      \directlua{%
+        generate_lyapunov(
+          \fractal@lyapunov@amin,
+          \fractal@lyapunov@amax,
+          \fractal@lyapunov@bmin,
+          \fractal@lyapunov@bmax,
+          \fractal@lyapunov@da,
+          \fractal@lyapunov@db,
+          \fractal@lyapunov@maxiter
+        )
+      }
+    \end{axis}
+  \end{tikzpicture}%
+}
+
+% Magnet Fractal
+\NewDocumentCommand{\MagnetFractal}{O{}}{%
+  \setkeys{fractex/magnet}{#1}%
+  \begin{tikzpicture}
+    \begin{axis}[hide axis, axis equal, colormap/\fractal@magnet@cmap]
+      \directlua{%
+        generate_magnet(
+          \fractal@magnet@xmin,
+          \fractal@magnet@xmax,
+          \fractal@magnet@ymin,
+          \fractal@magnet@ymax,
+          \fractal@magnet@dx,
+          \fractal@magnet@dy,
+          \fractal@magnet@maxiter
+        )
+      }
+    \end{axis}
+  \end{tikzpicture}%
+}
+
+% Multibrot Set
+\NewDocumentCommand{\MultibrotSet}{O{}}{%
+  \setkeys{fractex/multibrot}{#1}%
+  \begin{tikzpicture}
+    \begin{axis}[hide axis, axis equal, colormap/\fractal@multibrot@cmap]
+      \directlua{%
+        generate_multibrot(
+          \fractal@multibrot@xmin,
+          \fractal@multibrot@xmax,
+          \fractal@multibrot@ymin,
+          \fractal@multibrot@ymax,
+          \fractal@multibrot@dx,
+          \fractal@multibrot@dy,
+          \fractal@multibrot@d,
+          \fractal@multibrot@maxiter
+        )
+      }
+    \end{axis}
+  \end{tikzpicture}%
+}
+
+% Gingerbreadman
+\NewDocumentCommand{\GingerbreadmanMap}{O{}}{%
+  \setkeys{fractex/gingerbread}{#1}%
+  \begin{tikzpicture}
+    \begin{axis}[hide axis]
+      \directlua{%
+        generate_gingerbread(\fractal@gingerbread@num, "\fractal@gingerbread@color")
+      }
+    \end{axis}
+  \end{tikzpicture}%
+}
