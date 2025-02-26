@@ -1,5 +1,5 @@
 [package]
-name = "fractex"
+name = "FracTeX"
 version = "1.0"
 entrypoint = "src/fractex.sty"
 authors = ["Eito YONEYAMA"]
