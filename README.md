@@ -1,5 +1,7 @@
 # FracTeX
 
+[![Build Status](https://github.com/rice8y/FracTeX/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/rice8y/FracTeX/actions/workflows/CI.yml?query=branch%3Amain)
+
 This package provides commands to visualize various types of fractals using PGFPlots and LuaTeX.
 
 <p align="center" width="100%">
